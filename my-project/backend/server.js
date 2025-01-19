@@ -6,10 +6,21 @@ const path = require('path');
 const { exec } = require('child_process');
 const { sendReminderEmail } = require('./utils/email'); // Import the updated email utility
 const fetchUser = require('./middleware/fetchuser'); // Middleware for authentication
+const cors = require('cors');
 const app = express();
 const port = 3000;
-
+const auth = require('./routes/auth.js')
 app.use(express.json()); // Parse JSON requests
+
+// const cors = require('cors');
+
+// Enable CORS for the frontend (localhost:5173)
+app.use(cors({
+  origin: 'http://localhost:5173',  // Update this with your frontend's URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Add other HTTP methods if needed
+  credentials: true,  // If you are sending cookies or using sessions
+}));
+
 
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/myDatabase";
 
@@ -27,6 +38,10 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage });
+
+// app.use()
+app.use('/api/auth', auth);  // Mount auth routes here
+
 
 // Upload endpoint (authenticated)
 app.post('/upload', fetchUser, upload.single('pdfFile'), async (req, res) => {
