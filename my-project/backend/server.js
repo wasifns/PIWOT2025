@@ -1,15 +1,22 @@
 require('dotenv').config(); // Load environment variables
+const mongoose = require("mongoose");
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { exec } = require('child_process');
 const { sendReminderEmail } = require('./utils/email'); // Import the updated email utility
-const fetchUser = require('./middleware/fetchUser'); // Middleware for authentication
+const fetchUser = require('./middleware/fetchuser'); // Middleware for authentication
 const app = express();
 const port = 3000;
 
 app.use(express.json()); // Parse JSON requests
 
+const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/myDatabase";
+
+mongoose
+  .connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 // Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
