@@ -1,61 +1,40 @@
+require('dotenv').config(); // Load environment variables
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { exec } = require('child_process');
+const { sendReminderEmail } = require('./utils/email'); // Import the updated email utility
+const fetchUser = require('./middleware/fetchUser'); // Middleware for authentication
 const app = express();
 const port = 3000;
 
-// Set up multer for file upload
+app.use(express.json()); // Parse JSON requests
+
+// Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');  // Folder where uploaded PDFs will be saved
+    cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  // Unique filename
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 const upload = multer({ storage });
 
-// Serve a basic HTML form (optional)
-app.get('/', (req, res) => {
-  res.send(`
-    <form ref='uploadForm' 
-        id='uploadForm' 
-        action='/upload' 
-        method='post' 
-        encType="multipart/form-data">
-        <input type="file" name="pdfFile" />
-        <input type='submit' value='Upload!' />
-    </form>
-  `);
-});
+// Upload endpoint (authenticated)
+app.post('/upload', fetchUser, upload.single('pdfFile'), async (req, res) => {
+  const userEmail = req.user.email; // User's email from `fetchUser`
+  const { companyName, dueDate, amountDue } = req.body; // Extracted from client input or PDF
 
-// Handle the file upload and call the Python script
-app.post('/upload', upload.single('pdfFile'), (req, res) => {
-  console.log(req.file);  // Log the uploaded file object
-
-  if (!req.file) {
-    return res.status(400).send('No file uploaded.');
+  try {
+    sendReminderEmail(companyName, dueDate, amountDue, userEmail);
+    res.status(200).send('Reminder email sent successfully!');
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).send('Error sending email.');
   }
-
-  const pdfPath = req.file.path;
-  console.log(`File uploaded to: ${pdfPath}`);
-
-  // Use `python` (instead of `python3`) or the full path to Python executable
-  exec(`python extract_pdf_data.py ${pdfPath}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      return res.status(500).send('Error processing PDF.');
-    }
-
-    // Parse the output from the Python script and send the data as JSON
-    const extractedData = JSON.parse(stdout);
-    res.json(extractedData);
-  });
 });
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-  
 });

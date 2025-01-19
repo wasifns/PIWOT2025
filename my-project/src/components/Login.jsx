@@ -1,4 +1,3 @@
-// src/components/Login.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -13,11 +12,13 @@ const Login = () => {
     try {
       const response = await axios.post("http://localhost:5000/api/auth/login", formData);
       if (response.data.success) {
+        // Save token and email to localStorage
         localStorage.setItem("token", response.data.authtoken);
-        navigate("/upload");
+        localStorage.setItem("email", formData.email); // Save user's email
+        navigate("/upload"); // Redirect after successful login
       }
     } catch (err) {
-      setError(err.response.data.error || "Invalid credentials!");
+      setError(err.response?.data?.error || "Invalid credentials!");
     }
   };
 
