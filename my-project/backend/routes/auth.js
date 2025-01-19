@@ -4,19 +4,10 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
-var fetchuser = require('../middleware/fetchuser');
+var fetchuser = require('../middleware/fetchuser.js');
 const sendEmail = require('../utils/email.js'); // Import the sendEmail function
 
 const JWT_SECRET = 'Harryisagoodb$oy';
-
-
-// router.post('/createuser', async (req, res) => {
-//   res.send("Endpoint is working");
-//   console.log('ok')
-  
-// });
-
-
 
 // ROUTE 1: Create a User using: POST "/api/auth/createuser". No login required
 router.post('/createuser', [
