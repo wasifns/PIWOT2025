@@ -9,6 +9,15 @@ const sendEmail = require('../utils/email.js'); // Import the sendEmail function
 
 const JWT_SECRET = 'Harryisagoodb$oy';
 
+
+// router.post('/createuser', async (req, res) => {
+//   res.send("Endpoint is working");
+//   console.log('ok')
+  
+// });
+
+
+
 // ROUTE 1: Create a User using: POST "/api/auth/createuser". No login required
 router.post('/createuser', [
   body('name', 'Enter a valid name').isLength({ min: 3 }),
